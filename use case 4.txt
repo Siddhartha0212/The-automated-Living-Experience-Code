@@ -1,0 +1,61 @@
+#include "thingProperties.h"
+
+const int moisturePin = A0; // Analog pin for the moisture sensor
+const int pumpPin = D1;     // Digital pin for the motor pump (adjust pin number as needed)
+
+void setup() {
+  // Initialize a and wait for port to open:
+  Serial.begin(9600);
+  // This delay gives the chance to wait for a Serial Monitor without blocking if none is found
+  delay(1500);
+  pinMode(moisturePin, INPUT);
+  pinMode(pumpPin, OUTPUT); // Set pump pin as output
+
+  // Defined in thingProperties.h
+  initProperties();
+
+  // Connect to Arduino IoT Cloud
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);
+
+  /*
+     The following function allows you to obtain more information
+     related to the state of network and IoT Cloud connection and errors
+     the higher number the more granular information you’ll get.
+     The default is 0 (only errors).
+     Maximum is 4
+   */
+  setDebugMessageLevel(2);
+  ArduinoCloud.printDebugInfo();
+}
+
+void loop() {
+  ArduinoCloud.update();
+
+  // Read moisture sensor value
+  int moistureValue = analogRead(moisturePin);
+  
+  // Map the moisture value to a range of 0 to 100
+  int mappedMoisture = map(moistureValue, 0, 1023, 100, 0);
+  
+  // Set moisture property in Arduino Cloud
+  moisture = mappedMoisture;
+
+  // Check if moisture is below a certain threshold (e.g., 30)
+  if (mappedMoisture < 10) {
+    // Activate motor pump
+    digitalWrite(pumpPin, HIGH); // Assuming HIGH activates the pump, adjust if needed
+  } else {
+    // Deactivate motor pump
+    digitalWrite(pumpPin, LOW); // Assuming LOW deactivates the pump, adjust if needed
+  }
+
+  delay(500);
+}
+
+/*
+   Since Moisture is READ_WRITE variable, onMoistureChange() is
+   executed every time a new value is received from IoT Cloud.
+*/
+void onMoistureChange() {
+  // Add your code here to act upon Moisture change
+}

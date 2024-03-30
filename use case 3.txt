@@ -1,0 +1,36 @@
+#include "thingProperties.h"
+
+const int motorPin = D4;  // Digital pin to control the motor pump
+
+void setup() {
+  Serial.begin(9600);
+  delay(1500);
+  pinMode(motorPin, OUTPUT);
+
+  initProperties();
+  ArduinoCloud.begin(ArduinoIoTPreferredConnection);
+  setDebugMessageLevel(2);
+  ArduinoCloud.printDebugInfo();
+}
+
+void loop() {
+  ArduinoCloud.update();
+  delay(500);
+}
+
+void onToggleChange() {
+  Serial.print("Toggle switch state changed: ");
+  Serial.println(toggle);
+
+  // Invert the logic for the toggle switch
+  toggle = !toggle;
+
+  // Use the value of the toggle switch to control the motor
+  if (toggle) {
+    Serial.println("Turning on the motor pump");
+    digitalWrite(motorPin, HIGH);
+  } else {
+    Serial.println("Turning off the motor pump");
+    digitalWrite(motorPin, LOW);
+  }
+}

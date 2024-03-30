@@ -1,0 +1,63 @@
+#include <Servo.h>
+#include <Arduino_ConnectionHandler.h>
+
+const int ledPin = D5;
+const int ldrPin = D0;
+const int trigPin = D6; 
+const int echoPin = D7; 
+const int servoPin = D1;
+
+Servo myServo;
+
+// Create a servo object
+
+int max_distance = 50; // Maximum distance to consider for opening (cm)
+int min_distance = 10; // Minimum distance to trigger opening (cm)
+int closedPosition = 0; // Servo position for closed door (degrees)
+int openPosition = 90;
+// Servo position for open door (degrees)
+long duration; // Time for ultrasound pulse travel
+int distance;
+
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(ldrPin, INPUT);
+  Serial.begin(115200); // Start serial communication for debugging
+  pinMode(trigPin, OUTPUT); // Set trigger pin as output
+  pinMode(echoPin, INPUT); // Set echo pin as input
+  pinMode(servoPin, OUTPUT); // Set servo motor pin as output
+  myServo.attach(servoPin); // Attach servo to the control pin
+  myServo.write(closedPosition); // Set initial door position to closed
+}
+
+void loop() {
+  int ldrValue = digitalRead(ldrPin);
+  if (ldrValue == 0) {
+    // Turn off LED if bright
+    digitalWrite(ledPin, LOW);
+  } else {
+    // Turn on LED with full brightness for darkness
+    digitalWrite(ledPin, HIGH);
+  }
+
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = duration * 0.034 / 2;
+  Serial.print("Distance: ");
+  Serial.println(distance);
+  // Check distance and control door
+  
+  if (distance <= min_distance) {
+    myServo.write(openPosition); // Open the door
+  } else if (distance > max_distance) {
+    myServo.write(closedPosition); // Close the door if object is farther than max distance
+  }
+
+  delay(2400);// Optional delay to avoid rapid movements
+
+}
